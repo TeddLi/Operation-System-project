@@ -621,7 +621,7 @@ user_mem_check(struct Env *env, const void *va, size_t len, int perm)
 	     int i=0;
 		int flag=0;
 		int t=(int)va;
-		for(i=ROUNDDOWN(t,PGSIZE);i<ROUNDUP(t+len,PGSIZE);i+=PGSIZE)
+		for(i=t;i<(t+len);i+=PGSIZE)
 		{
 			pte_t* store=0;
 			struct Page* pg=page_lookup(env->env_pgdir, (void*)i, &store);
@@ -643,7 +643,7 @@ user_mem_check(struct Env *env, const void *va, size_t len, int perm)
 				user_mem_check_addr=(int)i;
 				break;
 			}
-
+		      i=ROUNDDOWN(i,PGSIZE);
 		}
 
 	return flag;
