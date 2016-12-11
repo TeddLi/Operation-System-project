@@ -185,9 +185,6 @@ mem_init(void)
 	}
 
 
-
-	cprintf("%d\r\n",page_free_list->pp_ref);
-	cprintf("1\r\n");
 	//page_insert(pgdir,);
 	//////////////////////////////////////////////////////////////////////
 	// Map the 'envs' array read-only by the user at linear address UENVS
@@ -219,8 +216,7 @@ mem_init(void)
 	{
 		page_insert(kern_pgdir,pa2page(PADDR(bootstack)+i),(void*)(KSTACKTOP-KSTKSIZE+i),PTE_W);
 	}
-	cprintf("%d\r\n",page_free_list->pp_ref);
-	cprintf("2\r\n");
+
 	//////////////////////////////////////////////////////////////////////
 	// Map all of physical memory at KERNBASE.
 	// Ie.  the VA range [KERNBASE, 2^32) should map to
@@ -308,6 +304,16 @@ mem_init_mp(void)
 	//     Permissions: kernel RW, user NONE
 	//
 	// LAB 4: Your code here:
+	   	int cpu_i;
+	uintptr_t stk_i;
+	physaddr_t stk_phy_i;
+	for(cpu_i = 0; cpu_i < NCPU; cpu_i++)
+	{
+		stk_i = KSTACKTOP - cpu_i * (KSTKGAP + KSTKSIZE) - KSTKSIZE;
+		//stk_i = stk_gap_i + KSTKGAP;
+		stk_phy_i = PADDR(percpu_kstacks[cpu_i]);
+		boot_map_region(kern_pgdir, stk_i, KSTKSIZE, stk_phy_i, PTE_W);
+	}
 
 }
 
@@ -326,20 +332,14 @@ mem_init_mp(void)
 void
 page_init(void)
 {
-//<<<<<<< HEAD
-	cprintf("page_init\r\n");
-//=======
 	// LAB 4:
 	// Change your code to mark the physical page at MPENTRY_PADDR
 	// as in use
-	size_t left_i = PGNUM(IOPHYSMEM);
-        size_t right_i = PGNUM(PADDR(envs + NENV));
 
-//>>>>>>> e7799a7dc7b7fb18b76a4dbb1bc55ee40575013e
 	// The example code here marks all physical pages as free.
 	// However this is not truly the case.  What memory is free?
 	//  1) Mark physical page 0 as in use.
-	//     This way we preserve the real-mode IDT and BIOS structures
+	//     This way we preserve the real-mode IDT and BIOS stpage_initructures
 	//     in case we ever need them.  (Currently we don't, but...)
 	//  2) The rest of base memory, [PGSIZE, npages_basemem * PGSIZE)
 	//     is free.
@@ -353,27 +353,30 @@ page_init(void)
 	// Change the code to reflect this.
 	// NB: DO NOT actually touch the physical memory corresponding to
 	// free pages!
-	size_t i;
-	for (i = 0; i < npages; i++) {
-	 if ((i < left_i || i > right_i) && i != PGNUM(MPENTRY_PADDR)) {
+	size_t i = 1;
+	struct Page* page_mpentry = pa2page(MPENTRY_PADDR);
+	for (i; i < npages_basemem; i++) {
+		if(pages + i == page_mpentry) 
+		{
+			cprintf("MPENTRY detected!\n");
+			continue;
+		}
 		pages[i].pp_ref = 0;
 		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
-		}
 	}
-	//first page
-	extern char end[];
-	pages[1].pp_link=0;
-	//io hole and kernel and kern_pgdir and pages
-	struct Page* pgstart=pa2page((physaddr_t)IOPHYSMEM);
-	struct Page* pgend=pa2page((physaddr_t)(end-KERNBASE+PGSIZE+ROUNDUP(npages*sizeof(struct Page),PGSIZE)+ROUNDUP(NENV*sizeof(struct Env),PGSIZE)));
-	//cprintf("pgstart %x ,pgend %x \r\n",(int)pgstart,(int)pgend);
-	pgend=pgend+1;
-	pgstart=pgstart-1;
-	cprintf("pgstart %x ,pgend %x \r\n",(int)pgstart,(int)pgend);
-    pgend->pp_link=pgstart;
-}
 
+	//cprintf("EXTPHYSMEM starts @: %p\n", EXTPHYSMEM);
+	// Pages is used after npages of struct Page is allocated
+	int start_point_of_free_page = (int)ROUNDUP(((char*)pages) + (sizeof(struct Page) * npages) + (sizeof(struct Env) * NENV) - 0xf0000000, PGSIZE)/PGSIZE;
+	//cprintf("start_point_of_free_page (including pagetable and other ds)=%x\n", start_point_of_free_page);
+ 	for(i = start_point_of_free_page; i < npages; i++) {
+		pages[i].pp_ref = 0;
+		pages[i].pp_link = page_free_list;
+		page_free_list = &pages[i];
+	}
+
+}
 //
 // Allocates a physical page.  If (alloc_flags & ALLOC_ZERO), fills the entire
 // returned physical page with '\0' bytes.  Does NOT increment the reference
@@ -905,13 +908,13 @@ check_kern_pgdir(void)
 
 	// check kernel stack
 //<<<<<<< HEAD
-	for (i = 0; i < KSTKSIZE; i += PGSIZE)
-	{
-
-		assert(check_va2pa(pgdir, KSTACKTOP - KSTKSIZE + i) == PADDR(bootstack) + i);
-
-	}
-			assert(check_va2pa(pgdir, KSTACKTOP - PTSIZE) == ~0);
+//	for (i = 0; i < KSTKSIZE; i += PGSIZE)
+//	{
+//
+//		assert(check_va2pa(pgdir, KSTACKTOP - KSTKSIZE + i) == PADDR(bootstack) + i);
+//
+//	}
+//			assert(check_va2pa(pgdir, KSTACKTOP - PTSIZE) == ~0);
 //=======
 	// (updated in lab 4 to check per-CPU kernel stacks)
 	for (n = 0; n < NCPU; n++) {
