@@ -213,7 +213,7 @@ trap_dispatch(struct Trapframe *tf)
 	// Handle processor exceptions.
 	print_trapframe(tf);
 	// LAB 3: Your code here.
-<<<<<<< HEAD
+//<<<<<<< HEAD
 	if(tf->tf_trapno==T_PGFLT)
 	{
 		page_fault_handler(tf);
@@ -229,7 +229,7 @@ trap_dispatch(struct Trapframe *tf)
 		tf->tf_regs.reg_eax=syscall(tf->tf_regs.reg_eax,tf->tf_regs.reg_edx,tf->tf_regs.reg_ecx,tf->tf_regs.reg_ebx,tf->tf_regs.reg_edi,tf->tf_regs.reg_esi);
 	    return;
 	}
-=======
+//=======
 
 	// Handle spurious interrupts
 	// The hardware sometimes raises these because of noise on the
@@ -244,7 +244,7 @@ trap_dispatch(struct Trapframe *tf)
 	// interrupt using lapic_eoi() before calling the scheduler!
 	// LAB 4: Your code here.
 
->>>>>>> e7799a7dc7b7fb18b76a4dbb1bc55ee40575013e
+//>>>>>>> e7799a7dc7b7fb18b76a4dbb1bc55ee40575013e
 	// Unexpected trap: The user process or the kernel has a bug.
 
 	if (tf->tf_cs == GD_KT)
@@ -273,11 +273,11 @@ trap(struct Trapframe *tf)
 	// fails, DO NOT be tempted to fix it by inserting a "cli" in
 	// the interrupt path.
 	assert(!(read_eflags() & FL_IF));
-<<<<<<< HEAD
+//<<<<<< HEAD
    // panic("trap called!");
 	cprintf("Incoming TRAP frame at %p\n", tf);
-=======
->>>>>>> e7799a7dc7b7fb18b76a4dbb1bc55ee40575013e
+//=======
+//>>>>>>> e7799a7dc7b7fb18b76a4dbb1bc55ee40575013e
 
 	if ((tf->tf_cs & 3) == 3) {
 		// Trapped from user mode.

@@ -229,7 +229,7 @@ mem_init(void)
 	// we just set up the mapping anyway.
 	// Permissions: kernel RW, user NONE
 	// Your code goes here:
-<<<<<<< HEAD
+//<<<<<<< HEAD
     for(i=0;i<0xffffffff-KERNBASE;i+=PGSIZE)
     {
     	if(i<npages*PGSIZE)
@@ -245,12 +245,12 @@ mem_init(void)
     }
     cprintf("%d\r\n",page_free_list->pp_ref);
     cprintf("3\r\n");
-=======
+//=======
 
 	// Initialize the SMP-related parts of the memory map
 	mem_init_mp();
 
->>>>>>> e7799a7dc7b7fb18b76a4dbb1bc55ee40575013e
+//>>>>>>> e7799a7dc7b7fb18b76a4dbb1bc55ee40575013e
 	// Check that the initial page directory has been set up correctly.
 
 	check_kern_pgdir();
@@ -314,7 +314,7 @@ mem_init_mp(void)
 // --------------------------------------------------------------
 // Tracking of physical pages.
 // The 'pages' array has one 'struct Page' entry per physical page.
-// Pages are reference counted, and free pages are kept on a linked list.
+// gPages are reference counted, and free pages are kept on a linked list.
 // --------------------------------------------------------------
 
 //
@@ -326,14 +326,16 @@ mem_init_mp(void)
 void
 page_init(void)
 {
-<<<<<<< HEAD
+//<<<<<<< HEAD
 	cprintf("page_init\r\n");
-=======
+//=======
 	// LAB 4:
 	// Change your code to mark the physical page at MPENTRY_PADDR
 	// as in use
+	size_t left_i = PGNUM(IOPHYSMEM);
+        size_t right_i = PGNUM(PADDR(envs + NENV));
 
->>>>>>> e7799a7dc7b7fb18b76a4dbb1bc55ee40575013e
+//>>>>>>> e7799a7dc7b7fb18b76a4dbb1bc55ee40575013e
 	// The example code here marks all physical pages as free.
 	// However this is not truly the case.  What memory is free?
 	//  1) Mark physical page 0 as in use.
@@ -353,9 +355,11 @@ page_init(void)
 	// free pages!
 	size_t i;
 	for (i = 0; i < npages; i++) {
+	 if ((i < left_i || i > right_i) && i != PGNUM(MPENTRY_PADDR)) {
 		pages[i].pp_ref = 0;
 		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
+		}
 	}
 	//first page
 	extern char end[];
@@ -900,7 +904,7 @@ check_kern_pgdir(void)
 		assert(check_va2pa(pgdir, i) == i);
 
 	// check kernel stack
-<<<<<<< HEAD
+//<<<<<<< HEAD
 	for (i = 0; i < KSTKSIZE; i += PGSIZE)
 	{
 
@@ -908,7 +912,7 @@ check_kern_pgdir(void)
 
 	}
 			assert(check_va2pa(pgdir, KSTACKTOP - PTSIZE) == ~0);
-=======
+//=======
 	// (updated in lab 4 to check per-CPU kernel stacks)
 	for (n = 0; n < NCPU; n++) {
 		uint32_t base = KSTACKTOP - (KSTKSIZE + KSTKGAP) * (n + 1);
@@ -918,7 +922,7 @@ check_kern_pgdir(void)
 		for (i = 0; i < KSTKGAP; i += PGSIZE)
 			assert(check_va2pa(pgdir, base + i) == ~0);
 	}
->>>>>>> e7799a7dc7b7fb18b76a4dbb1bc55ee40575013e
+//>>>>>>> e7799a7dc7b7fb18b76a4dbb1bc55ee40575013e
 
 	// check PDE permissions
 	for (i = 0; i < NPDENTRIES; i++) {
