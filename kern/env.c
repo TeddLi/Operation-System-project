@@ -169,7 +169,7 @@ env_setup_vm(struct Env *e)
 {
 	int i;
 	struct Page *p = NULL;
-	cprintf("env_setup_vm\r\n");
+//	cprintf("env_setup_vm\r\n");
 	// Allocate a page for the page directory
 	if (!(p = page_alloc(ALLOC_ZERO)))
 		return -E_NO_MEM;
@@ -215,7 +215,7 @@ env_setup_vm(struct Env *e)
 int
 env_alloc(struct Env **newenv_store, envid_t parent_id)
 {
-	cprintf("env_alloc");
+	//cprintf("env_alloc");
 	int32_t generation;
 	int r;
 	struct Env *e;
@@ -295,7 +295,7 @@ region_alloc(struct Env *e, void *va, size_t len)
 	//   You should round va down, and round (va + len) up.
 	//   (Watch out for corner-cases!)
 	void* i;
-	cprintf("region_alloc %x,%d\r\n",e->env_pgdir,len);
+	//cprintf("region_alloc %x,%d\r\n",e->env_pgdir,len);
 	for(i=ROUNDDOWN(va,PGSIZE);i<ROUNDUP(va+len,PGSIZE);i+=PGSIZE)
 	{
 		struct Page* p=(struct Page*)page_alloc(1);
@@ -361,7 +361,7 @@ load_icode(struct Env *e, uint8_t *binary, size_t size)
 
 	// LAB 3: Your code here.
 	lcr3(PADDR(e->env_pgdir));
-	cprintf("load_icode\r\n");
+	//cprintf("load_icode\r\n");
 	struct Elf * ELFHDR=(struct Elf *)binary;
 	struct Proghdr *ph, *eph;
 	int i;
@@ -377,7 +377,7 @@ load_icode(struct Env *e, uint8_t *binary, size_t size)
 			// as the physical address)
 			if(ph->p_type==ELF_PROG_LOAD)
 			{
-			cprintf("load_prog %08x %08x \r\n",ph->p_filesz,ph->p_va);
+		//	cprintf("load_prog %08x %08x \r\n",ph->p_filesz,ph->p_va);
 			region_alloc(e,(void*)ph->p_va,ph->p_filesz);
 			char* va=(char*)ph->p_va;
 			for(i=0;i<ph->p_filesz;i++)
@@ -397,7 +397,7 @@ load_icode(struct Env *e, uint8_t *binary, size_t size)
 					// as the physical address)
 					if(shdr->sh_type==8)
 					{
-					cprintf("section %08x %08x %08x %08x\r\n",shdr->sh_size,shdr->sh_addr,shdr->sh_offset,shdr->sh_type);
+			//		cprintf("section %08x %08x %08x %08x\r\n",shdr->sh_size,shdr->sh_addr,shdr->sh_offset,shdr->sh_type);
 					region_alloc(e,(void*)shdr->sh_addr,shdr->sh_size);
 
 
@@ -414,7 +414,7 @@ load_icode(struct Env *e, uint8_t *binary, size_t size)
      if(p==NULL)
     	 panic("Not enough mem for user stack!");
      page_insert(e->env_pgdir,p,(void*)(USTACKTOP-PGSIZE),PTE_W|PTE_U);
-     cprintf("load_icode finish!\r\n");
+  //   cprintf("load_icode finish!\r\n");
      lcr3(PADDR(kern_pgdir));
 }
 
@@ -457,7 +457,7 @@ env_free(struct Env *e)
 		lcr3(PADDR(kern_pgdir));
 
 	// Note the environment's demise.
-	cprintf("[%08x] free env %08x\n", curenv ? curenv->env_id : 0, e->env_id);
+//	cprintf("[%08x] free env %08x\n", curenv ? curenv->env_id : 0, e->env_id);
 
 	// Flush all mapped pages in the user portion of the address space
 	static_assert(UTOP % PTSIZE == 0);

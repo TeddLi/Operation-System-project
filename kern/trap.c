@@ -160,7 +160,7 @@ trap_init_percpu(void)
 void
 print_trapframe(struct Trapframe *tf)
 {
-	cprintf("TRAP frame at %p from CPU %d\n", tf, cpunum());
+	//cprintf("TRAP frame at %p from CPU %d\n", tf, cpunum());
 	print_regs(&tf->tf_regs);
 	cprintf("  es   0x----%04x\n", tf->tf_es);
 	cprintf("  ds   0x----%04x\n", tf->tf_ds);
@@ -211,24 +211,24 @@ static void
 trap_dispatch(struct Trapframe *tf)
 {
 	// Handle processor exceptions.
-	print_trapframe(tf);
+	//print_trapframe(tf);
 	// LAB 3: Your code here.
 //<<<<<<< HEAD
-//	if(tf->tf_trapno==T_PGFLT)
-//	{
-//		page_fault_handler(tf);
-//		return;
-//	}
-//	if(tf->tf_trapno==T_BRKPT)
-//	{
-//		break_point_handler(tf);
-//		return;
-//	}
-//	if(tf->tf_trapno==T_SYSCALL)
-//	{
-//		tf->tf_regs.reg_eax=syscall(tf->tf_regs.reg_eax,tf->tf_regs.reg_edx,tf->tf_regs.reg_ecx,tf->tf_regs.reg_ebx,tf->tf_regs.reg_edi,tf-/>tf_regs.reg_esi);
-//	    return;
-//	}
+	if(tf->tf_trapno==T_PGFLT)
+	{
+		page_fault_handler(tf);
+		return;
+	}
+	if(tf->tf_trapno==T_BRKPT)
+	{
+		break_point_handler(tf);
+		return;
+	}
+	if(tf->tf_trapno==T_SYSCALL)
+	{
+		tf->tf_regs.reg_eax=syscall(tf->tf_regs.reg_eax,tf->tf_regs.reg_edx,tf->tf_regs.reg_ecx,tf->tf_regs.reg_ebx,tf->tf_regs.reg_edi,tf->tf_regs.reg_esi);
+	    return;
+	}
 //=======
 
 	// Handle spurious interrupts
