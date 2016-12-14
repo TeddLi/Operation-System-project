@@ -29,7 +29,7 @@ sched_yield(void)
 	// below to switch to this CPU's idle environment.
 
 	// LAB 4: Your code here.
-    struct Env *curr = thiscpu->cpu_env;
+   struct Env *curr = thiscpu->cpu_env;
     int idx = curr ? ENVX(curr->env_id) % NENV : 0;
 	for (i = 1; i < NENV; i++) {
         idx = (idx + 1) % NENV;
