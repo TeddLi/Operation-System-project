@@ -27,14 +27,25 @@ duppage(envid_t dstenv, void *addr)
 {
 	int r;
 
+	cprintf("duppage(), copying: %08x\n", addr);
+
 	// This is NOT what you should do in your fork.
 	if ((r = sys_page_alloc(dstenv, addr, PTE_P|PTE_U|PTE_W)) < 0)
 		panic("sys_page_alloc: %e", r);
+
+	cprintf("sys_page_alloc() done\n");
 	if ((r = sys_page_map(dstenv, addr, 0, UTEMP, PTE_P|PTE_U|PTE_W)) < 0)
 		panic("sys_page_map: %e", r);
+	cprintf("sys_page_map() done, ret %d\n", r);
+
+	cprintf("about to call memmove(UTEMP=%08x, addr=%08x, PGSIZE=%08x)\n", UTEMP, addr, PGSIZE);
 	memmove(UTEMP, addr, PGSIZE);
+
+	cprintf("memmove() done\n");
 	if ((r = sys_page_unmap(0, UTEMP)) < 0)
 		panic("sys_page_unmap: %e", r);
+
+	cprintf("sys_page_unmap() done\n");
 }
 
 envid_t
@@ -77,4 +88,5 @@ dumbfork(void)
 
 	return envid;
 }
+
 
