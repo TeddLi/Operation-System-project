@@ -77,7 +77,7 @@ duppage(envid_t envid, unsigned pn)
 
 	if((pte & PTE_W) != 0 || (pte & PTE_COW) != 0)
 	{
-		if((r = sys_page_map(now_evid, addr, envid, addr, PTE_U | PTE_P | PTE_COW)) < 0)//PTE_COW 寫時複製
+		if((r = sys_page_map(now_evid, addr, envid, addr, PTE_U | PTE_P | PTE_COW)) < 0)
 			panic("duppage(): failed... mapping page into envid %e\n", r);
 		if((r = sys_page_map(now_evid, addr, now_evid, addr, PTE_U | PTE_P | PTE_COW)) < 0)
 			panic("duppage(): failed... mapping page into self: %e\n", r);
@@ -92,6 +92,7 @@ duppage(envid_t envid, unsigned pn)
 	//panic("duppage not implemented");
 	return 0;
 }
+
 //
 // User-level fork with copy-on-write.
 // Set up our page fault handler appropriately.
@@ -178,6 +179,7 @@ fork(void)
 	return envid;
 	//panic("fork not implemented");
 }
+
 // Challenge!
 int
 sfork(void)
@@ -185,3 +187,4 @@ sfork(void)
 	panic("sfork not implemented");
 	return -E_INVAL;
 }
+

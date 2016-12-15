@@ -50,6 +50,23 @@ void machinecheck_handler();
 void SIMDFPexception_handler();
 void systemcall_handler();
 
+extern void t_irq0();
+extern void t_irq1();
+extern void t_irq2();
+extern void t_irq3();
+extern void t_irq4();
+extern void t_irq5();
+extern void t_irq6();
+extern void t_irq7();
+extern void t_irq8();
+extern void t_irq9();
+extern void t_irq10();
+extern void t_irq11();
+extern void t_irq12();
+extern void t_irq13();
+extern void t_irq14();
+extern void t_irq15();
+
 static const char *trapname(int trapno)
 {
 	static const char * const excnames[] = {
@@ -111,11 +128,28 @@ trap_init(void)
 	// LAB 3: Your code here.
 	
 
+	SETGATE(idt[IRQ_OFFSET + 0], 0, GD_KT, t_irq0, 0);
+	SETGATE(idt[IRQ_OFFSET + 1], 0, GD_KT, t_irq1, 0);
+	SETGATE(idt[IRQ_OFFSET + 2], 0, GD_KT, t_irq2, 0);
+	SETGATE(idt[IRQ_OFFSET + 3], 0, GD_KT, t_irq3, 0);
+	SETGATE(idt[IRQ_OFFSET + 4], 0, GD_KT, t_irq4, 0);
+	SETGATE(idt[IRQ_OFFSET + 5], 0, GD_KT, t_irq5, 0);
+	SETGATE(idt[IRQ_OFFSET + 6], 0, GD_KT, t_irq6, 0);
+	SETGATE(idt[IRQ_OFFSET + 7], 0, GD_KT, t_irq7, 0);
+	SETGATE(idt[IRQ_OFFSET + 8], 0, GD_KT, t_irq8, 0);
+	SETGATE(idt[IRQ_OFFSET + 9], 0, GD_KT, t_irq9, 0);
+	SETGATE(idt[IRQ_OFFSET + 10], 0, GD_KT, t_irq10, 0);
+	SETGATE(idt[IRQ_OFFSET + 11], 0, GD_KT, t_irq11, 0);
+	SETGATE(idt[IRQ_OFFSET + 12], 0, GD_KT, t_irq12, 0);
+	SETGATE(idt[IRQ_OFFSET + 13], 0, GD_KT, t_irq13, 0);
+	SETGATE(idt[IRQ_OFFSET + 14], 0, GD_KT, t_irq14, 0);
+	SETGATE(idt[IRQ_OFFSET + 15], 0, GD_KT, t_irq15, 0);
 
 
 	// Per-CPU setup 
 	trap_init_percpu();
 }
+
 
 // Initialize and load the per-CPU TSS and IDT
 void
@@ -181,6 +215,7 @@ trap_init_percpu(void)
 	// Load the IDT
 	lidt(&idt_pd);
 }
+
 void
 print_trapframe(struct Trapframe *tf)
 {
@@ -226,34 +261,31 @@ print_regs(struct PushRegs *regs)
 	cprintf("  ecx  0x%08x\n", regs->reg_ecx);
 	cprintf("  eax  0x%08x\n", regs->reg_eax);
 }
-void
-break_point_handler(struct Trapframe *tf)
-{
-	monitor(tf);
-}
+	
 static void
 trap_dispatch(struct Trapframe *tf)
 {
+	//cprintf("trap_dispatch(): dispatching traps\n");
+
 	// Handle processor exceptions.
-	//print_trapframe(tf);
 	// LAB 3: Your code here.
-//<<<<<<< HEAD
-	if(tf->tf_trapno==T_PGFLT)
+	switch(tf->tf_trapno)
 	{
+	case T_PGFLT:
 		page_fault_handler(tf);
 		return;
-	}
-	if(tf->tf_trapno==T_BRKPT)
-	{
-		break_point_handler(tf);
+	case T_BRKPT:
+		monitor(tf);
+		return;
+	case T_SYSCALL:
+		tf->tf_regs.reg_eax =
+			 syscall(tf->tf_regs.reg_eax, tf->tf_regs.reg_edx,
+									   tf->tf_regs.reg_ecx,
+							  		   tf->tf_regs.reg_ebx,
+							  		   tf->tf_regs.reg_edi,
+							  		   tf->tf_regs.reg_esi);
 		return;
 	}
-	if(tf->tf_trapno==T_SYSCALL)
-	{
-		tf->tf_regs.reg_eax=syscall(tf->tf_regs.reg_eax,tf->tf_regs.reg_edx,tf->tf_regs.reg_ecx,tf->tf_regs.reg_ebx,tf->tf_regs.reg_edi,tf->tf_regs.reg_esi);
-	    return;
-	}
-//=======
 
 	// Handle spurious interrupts
 	// The hardware sometimes raises these because of noise on the
@@ -267,9 +299,14 @@ trap_dispatch(struct Trapframe *tf)
 	// Handle clock interrupts. Don't forget to acknowledge the
 	// interrupt using lapic_eoi() before calling the scheduler!
 	// LAB 4: Your code here.
-//>>>>>>> e7799a7dc7b7fb18b76a4dbb1bc55ee40575013e
-	// Unexpected trap: The user process or the kernel has a bug.
+	if (tf->tf_trapno == IRQ_OFFSET + IRQ_TIMER)
+	{
+		lapic_eoi();
+		sched_yield();
+	}//不用return因爲不會返回
 
+	// Unexpected trap: The user process or the kernel has a bug.
+	print_trapframe(tf);
 	if (tf->tf_cs == GD_KT)
 		panic("unhandled trap in kernel");
 	else {
@@ -277,8 +314,6 @@ trap_dispatch(struct Trapframe *tf)
 		return;
 	}
 }
-
-
 
 void
 trap(struct Trapframe *tf)
@@ -295,15 +330,8 @@ trap(struct Trapframe *tf)
 	// Check that interrupts are disabled.  If this assertion
 	// fails, DO NOT be tempted to fix it by inserting a "cli" in
 	// the interrupt path.
-	//cprintf("%p\n",read_eflags());
-	//cprintf("%p\n",FL_IF);
-	assert(!(read_eflags() & FL_IF));
-		
-//<<<<<< HEAD
-   // panic("trap called!");
-//	cprintf("Incoming TRAP frame at %p\n", tf);
-//=======
-//>>>>>>> e7799a7dc7b7fb18b76a4dbb1bc55ee40575013e
+	//cprintf("%08x %08x\n",read_eflags() , FL_IF);
+	//assert(!(read_eflags() & FL_IF));
 
 	if ((tf->tf_cs & 3) == 3) {
 		// Trapped from user mode.
@@ -352,11 +380,14 @@ page_fault_handler(struct Trapframe *tf)
 
 	// Read processor's CR2 register to find the faulting address
 	fault_va = rcr2();
-	if((tf->tf_cs & 0x3) != 3)
-		panic("page_fault_handler(): page fault at kernel-mode !");
+
 	// Handle kernel-mode page faults.
 
 	// LAB 3: Your code here.
+	// Check whether pgflt happened at kernel mode
+	// RPL != 0x3
+	if((tf->tf_cs & 0x3) != 3)
+		panic("page_fault_handler(): page fault at kernel-mode !");
 
 	// We've already handled kernel-mode exceptions, so if we get here,
 	// the page fault happened in user mode.
@@ -390,8 +421,9 @@ page_fault_handler(struct Trapframe *tf)
 	//   (the 'tf' variable points at 'curenv->env_tf').
 
 	// LAB 4: Your code here.
-	
 	if(curenv->env_pgfault_upcall == NULL) goto DESTROY;
+
+
 	// 1. call the environment's page fault upcall, if one exits
 	// 1.1 Set up a page fault stack frame
 
@@ -428,10 +460,10 @@ page_fault_handler(struct Trapframe *tf)
 
 
 	DESTROY:
+	// Destroy the environment that caused the fault.
 	cprintf("[%08x] user fault va %08x ip %08x\n",
 		curenv->env_id, fault_va, tf->tf_eip);
 	print_trapframe(tf);
 	env_destroy(curenv);
 }
-
 
