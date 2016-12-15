@@ -9504,7 +9504,7 @@ f01050ae:	e8 2d f9 ff ff       	call   f01049e0 <sched_yield>
 		panic("Syscall number Invalid!\n");
 f01050b3:	c7 44 24 08 72 81 10 	movl   $0xf0108172,0x8(%esp)
 f01050ba:	f0 
-f01050bb:	c7 44 24 04 e7 01 00 	movl   $0x1e7,0x4(%esp)
+f01050bb:	c7 44 24 04 e6 01 00 	movl   $0x1e6,0x4(%esp)
 f01050c2:	00 
 f01050c3:	c7 04 24 8b 81 10 f0 	movl   $0xf010818b,(%esp)
 f01050ca:	e8 71 af ff ff       	call   f0100040 <_panic>

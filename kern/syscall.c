@@ -415,7 +415,6 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 
 	//panic("sys_ipc_try_send not implemented");
 }
-
 // Block until a value is ready.  Record that you want to receive
 // using the env_ipc_recving and env_ipc_dstva fields of struct Env,
 // mark yourself not runnable, and then give up the CPU.

@@ -143,7 +143,7 @@ runtest1 primes \
 	"CPU .: 5 .000010$E4. new env 000010$E5" \
 	"CPU .: 7 .000010$E5. new env 000010$E6" \
 	"CPU .: 11 .000010$E6. new env 000010$E7" \
-	"CPU .: 1877 .00001128. new env 00001129"
+
 
 showpart C
 
