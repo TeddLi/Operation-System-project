@@ -1,6 +1,5 @@
 // Simple command-line kernel monitor useful for
 // controlling the kernel and exploring the system interactively.
-
 #include <inc/stdio.h>
 #include <inc/string.h>
 #include <inc/memlayout.h>
@@ -25,6 +24,7 @@ struct Command {
 static struct Command commands[] = {
 	{ "help", "Display this list of commands", mon_help },
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
+	{"mon_backtrace","Backtrace function call chain",mon_backtrace},
 };
 #define NCOMMANDS (sizeof(commands)/sizeof(commands[0]))
 
@@ -61,6 +61,20 @@ int
 mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 {
 	// Your code here.
+	unsigned int ebp;
+	unsigned int eip;
+	unsigned int args[5];
+	unsigned int i;
+     	ebp=read_ebp();
+	cprintf("Stack backtrace:\n");
+	do{
+           eip = *((unsigned int*)(ebp + 4));
+           for(i=0;i<5;i++)
+		args[i] = *((unsigned int*)(ebp+8+4*i));
+	cprintf(" ebp %08x eip %08x args %08x %08x %08x %08x %08x\n",
+		ebp,eip,args[0],args[1],args[2],args[3],args[4]);
+	ebp =*((unsigned int*)ebp);
+	}while(ebp!=0);
 	return 0;
 }
 

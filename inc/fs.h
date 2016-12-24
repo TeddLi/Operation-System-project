@@ -1,4 +1,4 @@
-// See COPYRIGHT for copyright information.
+ // See COPYRIGHT for copyright information.
 
 #ifndef JOS_INC_FS_H
 #define JOS_INC_FS_H
@@ -8,7 +8,7 @@
 
 // File nodes (both in-memory and on-disk)
 
-// Bytes per file system block - same as page size
+// Bytes per file system block - same as page size                                                                                                                                                                                                                                                                                                                                                                                        
 #define BLKSIZE		PGSIZE
 #define BLKBITSIZE	(BLKSIZE * 8)
 

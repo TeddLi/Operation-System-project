@@ -69,7 +69,21 @@ open(const char *path, int mode)
 	// file descriptor.
 
 	// LAB 5: Your code here.
-	panic("open not implemented");
+	int re;
+	struct Fd* fd;
+	if((re=fd_alloc(&fd))<0)
+		return re;
+	if (strlen (path) >= MAXPATHLEN)//路径长度有最长限制
+		return -E_BAD_PATH;
+	strcpy (fsipcbuf.open.req_path, path);
+	fsipcbuf.open.req_omode = mode;
+	if ((re = fsipc (FSREQ_OPEN, (void *) fd)) < 0)
+	{
+		fd_close (fd, 0);			//不要忘记关闭此文件
+		return re;
+	}
+	return fd2num(fd);			//返回值为打开的文件ID
+	//panic("open not implemented");
 }
 
 // Flush the file descriptor.  After this the fileid is invalid.
@@ -100,7 +114,16 @@ devfile_read(struct Fd *fd, void *buf, size_t n)
 	// bytes read will be written back to fsipcbuf by the file
 	// system server.
 	// LAB 5: Your code here
-	panic("devfile_read not implemented");
+	fsipcbuf.read.req_fileid = fd->fd_file.id;	//client端是使用fsipcbuf来作为暂存读取到的字节的缓冲区的（一个Fspic结构）
+	fsipcbuf.read.req_n = n;
+
+	int r;
+	if ((r = fsipc (FSREQ_READ, NULL)) < 0)		//!!!fsipc使用！！！返回读取到了多少个字节(fsipc第二个参数此时没有用，
+		return r;			//因为即将收到的是对方传来的读取了多少个字节的值，没有用到页映射）
+
+	memmove (buf, fsipcbuf.readRet.ret_buf, r);//把读取到的r个字节放到真正的要存储这些字节的地址上
+	return r;
+	//panic("devfile_read not implemented");
 }
 
 // Write at most 'n' bytes from 'buf' to 'fd' at the current seek position.
@@ -115,8 +138,15 @@ devfile_write(struct Fd *fd, const void *buf, size_t n)
 	// careful: fsipcbuf.write.req_buf is only so large, but
 	// remember that write is always allowed to write *fewer*
 	// bytes than requested.
-	// LAB 5: Your code here
-	panic("devfile_write not implemented");
+		// LAB 5: Your code here
+	fsipcbuf.write.req_fileid = fd->fd_file.id;		//client端是使用fsipcbuf来作为暂存读取到的字节的缓冲区的（一个Fspic结构）
+	fsipcbuf.write.req_n = n;
+	memmove (fsipcbuf.write.req_buf, buf, n);
+	int r;
+	r=fsipc(FSREQ_WRITE,NULL);
+	return r;
+	//mem
+	//panic("devfile_write not implemented");
 }
 
 static int

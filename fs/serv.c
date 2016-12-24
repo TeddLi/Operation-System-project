@@ -215,7 +215,20 @@ serve_read(envid_t envid, union Fsipc *ipc)
 	// Hint: Use file_read.
 	// Hint: The seek position is stored in the struct Fd.
 	// LAB 5: Your code here
-	panic("serve_read not implemented");
+	struct OpenFile *open;
+	int r;
+	if ((r = openfile_lookup(envid, req->req_fileid, &open)) < 0)
+		return r;
+	int datanum;
+	if(req->req_n>PGSIZE)//最多读取PGSIZE个字节，因为Fsret_read中的数组只有PGSIZE这么大
+		datanum=PGSIZE;
+	else
+		datanum=req->req_n;
+	if ((r = file_read (open->o_file, ret->ret_buf, datanum, open->o_fd->fd_offset)) < 0)
+		return r;
+	open->o_fd->fd_offset += r;
+	return r;						//返回读取了多少字节
+	//panic("serve_read not implemented");
 }
 
 // Write req->req_n bytes from req->req_buf to req_fileid, starting at
@@ -229,7 +242,20 @@ serve_write(envid_t envid, struct Fsreq_write *req)
 		cprintf("serve_write %08x %08x %08x\n", envid, req->req_fileid, req->req_n);
 
 	// LAB 5: Your code here.
-	panic("serve_write not implemented");
+	struct OpenFile* open;
+	int r;
+	if ((r = openfile_lookup(envid, req->req_fileid, &open)) < 0)
+		return r;
+	int datanum;
+	if(req->req_n>(PGSIZE - (sizeof(int) + sizeof(size_t))))
+		datanum=PGSIZE - (sizeof(int) + sizeof(size_t));
+	else
+		datanum=req->req_n;
+	if ((r = file_write (open->o_file, req->req_buf, datanum, open->o_fd->fd_offset)) < 0)
+		return r;
+	open->o_fd->fd_offset += r;
+	return r;
+	//panic("serve_write not implemented");
 }
 
 // Stat ipc->stat.req_fileid.  Return the file's struct Stat to the

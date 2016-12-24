@@ -50,6 +50,7 @@ i386_init(void)
 
 	// Acquire the big kernel lock before waking up APs
 	// Your code here:
+	lock_kernel();
 
 	// Starting non-boot CPUs
 	boot_aps();
@@ -59,17 +60,30 @@ i386_init(void)
 	for (i = 0; i < NCPU; i++)
 		ENV_CREATE(user_idle, ENV_TYPE_IDLE);
 
+//<<<<<<< HEAD
 	// Start fs.
 	ENV_CREATE(fs_fs, ENV_TYPE_FS);
+//=======
+//>>>>>>> lab4
 
 #if defined(TEST)
 	// Don't touch -- used by grading script!
 	ENV_CREATE(TEST, ENV_TYPE_USER);
 #else
 	// Touch all you want.
+//<<<<<<< HEAD
 	// ENV_CREATE(user_writemotd, ENV_TYPE_USER);
 	// ENV_CREATE(user_testfile, ENV_TYPE_USER);
 	// ENV_CREATE(user_icode, ENV_TYPE_USER);
+//=======
+	//ENV_CREATE(user_primes, ENV_TYPE_USER);
+	
+	//for (i = 0; i < NCPU; i++)
+	//	ENV_CREATE(user_yield, ENV_TYPE_USER);
+	ENV_CREATE(user_yield, ENV_TYPE_USER);
+	ENV_CREATE(user_yield, ENV_TYPE_USER);
+//	ENV_CREATE(user_yield, ENV_TYPE_USER);
+//>>>>>>> lab4
 #endif // TEST*
 
 	// Schedule and run the first user environment!
@@ -126,9 +140,11 @@ mp_main(void)
 	// only one CPU can enter the scheduler at a time!
 	//
 	// Your code here:
+	lock_kernel();
+	sched_yield();
 
 	// Remove this after you finish Exercise 4
-	for (;;);
+	//for (;;);
 }
 
 /*
@@ -177,3 +193,4 @@ _warn(const char *file, int line, const char *fmt,...)
 	cprintf("\n");
 	va_end(ap);
 }
+

@@ -16,7 +16,7 @@ if gmake --version >/dev/null 2>&1; then make=gmake; else make=make; fi
 # QEMU
 #
 
-timeout=30
+timeout=50
 preservefs=n
 qemu=`$make -s --no-print-directory print-qemu`
 gdbport=`$make -s --no-print-directory print-gdbport`
